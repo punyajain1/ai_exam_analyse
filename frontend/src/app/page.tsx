@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Header } from "@/components/Header";
 import { Sidebar } from "@/components/Sidebar";
 import { UploadSection } from "@/components/UploadSection";
@@ -11,6 +11,12 @@ import { AssessmentData } from "@/lib/assessmentData";
 type FlowStep = "upload" | "extracting" | "mapping";
 
 export default function Home() {
+  // Wake up the backend on initial load
+  useEffect(() => {
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+    fetch(`${API_URL}/health`).catch(console.error);
+  }, []);
+
   const [currentStep, setCurrentStep] = useState<FlowStep>("upload");
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<string>("exams");
