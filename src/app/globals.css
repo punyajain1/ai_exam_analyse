@@ -1,26 +1,85 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
+@layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --font-sans: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    --font-handwriting: 'Caveat', 'Kalam', 'Bradley Hand', 'Segoe Script', cursive;
   }
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+}
+
+/* Custom scrollbar for question list & answer sheet */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.4);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.6);
+}
+
+/* Notebook Ruled Paper Background Pattern */
+.notebook-paper {
+  background-color: #fbfbf8;
+  background-image: linear-gradient(#e2e8f0 1px, transparent 1px);
+  background-size: 100% 32px;
+  position: relative;
+}
+
+.notebook-paper::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 54px;
+  width: 2px;
+  background-color: #fca5a5;
+  opacity: 0.85;
+}
+
+/* Smooth pulse animation for AI extract star */
+@keyframes ai-pulse {
+  0%, 100% {
+    transform: scale(1) rotate(0deg);
+    filter: drop-shadow(0 0 12px rgba(255, 91, 34, 0.45));
+  }
+  50% {
+    transform: scale(1.08) rotate(4deg);
+    filter: drop-shadow(0 0 24px rgba(255, 91, 34, 0.75));
+  }
+}
+
+.animate-ai-sparkle {
+  animation: ai-pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Pulsing highlight for active bounding box */
+@keyframes box-glow {
+  0%, 100% {
+    box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.9), 0 0 16px rgba(34, 197, 94, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 0 3px rgba(22, 163, 74, 1), 0 0 24px rgba(34, 197, 94, 0.55);
+  }
+}
+
+.active-bounding-box {
+  animation: box-glow 2.5s ease-in-out infinite;
+}
+
+/* Handwriting class */
+.font-handwriting {
+  font-family: var(--font-handwriting);
 }
