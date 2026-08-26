@@ -154,23 +154,25 @@ export const ExtractionLoading: React.FC<ExtractionLoadingProps> = ({
             </div>
           </div>
 
-          <h2 className="text-2xl md:text-3xl font-extrabold text-[#1e293b] tracking-tight mb-2">
-            Extracting &amp; Mapping Assessment...
+          <h2 className="text-2xl md:text-3xl font-bold md:font-extrabold text-[#1a1a1a] md:text-[#1e293b] tracking-tight mb-2">
+            <span className="md:hidden">Extracting...</span>
+            <span className="hidden md:inline">Extracting &amp; Mapping Assessment...</span>
           </h2>
-          <p className="text-slate-500 text-sm md:text-base font-normal mb-5">
-            Processing files with Gemini 3.1 Flash Lite Vision
+          <p className="text-[#a3a3a3] md:text-slate-500 text-[15px] md:text-base font-medium md:font-normal mb-5">
+            <span className="md:hidden">This may take a while</span>
+            <span className="hidden md:inline">Processing files with Gemini 3.1 Flash Lite Vision</span>
           </p>
 
-          {/* Progress Bar */}
-          <div className="w-full max-w-md bg-slate-200/80 rounded-full h-2.5 overflow-hidden mb-4 shadow-inner">
+          {/* Progress Bar (Desktop only) */}
+          <div className="hidden md:block w-full max-w-md bg-slate-200/80 rounded-full h-2.5 overflow-hidden mb-4 shadow-inner">
             <div
               className="bg-gradient-to-r from-orange-400 to-[#ff5722] h-full rounded-full transition-all duration-500 ease-out"
               style={{ width: `${progressPercent}%` }}
             />
           </div>
 
-          {/* Step Pill */}
-          <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-orange-50 border border-orange-200/60 text-xs text-[#ff5722] font-semibold shadow-xs">
+          {/* Step Pill (Desktop only) */}
+          <div className="hidden md:flex items-center gap-2 px-4 py-2 rounded-full bg-orange-50 border border-orange-200/60 text-xs text-[#ff5722] font-semibold shadow-xs">
             <Sparkles className="w-3.5 h-3.5 animate-spin" />
             <span>
               Step {currentStepIndex}/{totalSteps}: {currentMessage}

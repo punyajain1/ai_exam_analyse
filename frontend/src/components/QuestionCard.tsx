@@ -23,13 +23,13 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
   const getScoreBadge = () => {
     const ratio = question.obtainedMarks / question.maxMarks;
     if (ratio === 1) {
-      return "bg-[#eaf7ee] text-[#168a44] border-[#c7ebd2]";
+      return "md:bg-[#eaf7ee] text-[#168a44] md:border-[#c7ebd2]";
     } else if (ratio >= 0.6) {
-      return "bg-[#f4faee] text-[#2e7d32] border-[#d5edd2]";
+      return "md:bg-[#f4faee] text-[#2e7d32] md:border-[#d5edd2]";
     } else if (ratio > 0) {
-      return "bg-[#fff7eb] text-[#d97706] border-[#fde68a]";
+      return "md:bg-[#fff7eb] text-[#d97706] md:border-[#fde68a]";
     } else {
-      return "bg-[#fef2f2] text-[#dc2626] border-[#fecaca]";
+      return "md:bg-[#fef2f2] text-[#dc2626] md:border-[#fecaca]";
     }
   };
 
@@ -39,7 +39,7 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
       onClick={onSelect}
       className={`group rounded-2xl transition-all duration-200 cursor-pointer overflow-hidden ${
         isActive
-          ? "border-2 border-[#ff5722] bg-white shadow-md shadow-orange-500/10 ring-4 ring-orange-500/5"
+          ? "border md:border-2 border-slate-200 md:border-[#ff5722] bg-white md:shadow-md md:shadow-orange-500/10 md:ring-4 md:ring-orange-500/5 shadow-sm"
           : "border border-slate-200/90 bg-white hover:border-slate-300 hover:shadow-xs"
       }`}
     >
@@ -48,11 +48,7 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
         {/* Question Number Badge */}
         <div className="flex items-center gap-1.5 shrink-0 mt-0.5">
           <div
-            className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs transition-colors ${
-              isActive
-                ? "bg-[#ff5722] text-white shadow-xs"
-                : "bg-slate-700 text-white group-hover:bg-slate-800"
-            }`}
+            className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs transition-colors bg-slate-500 text-white`}
           >
             {question.number}
           </div>
@@ -71,7 +67,7 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
         {/* Score Badge and Accordion Toggle */}
         <div className="flex items-center gap-2 shrink-0 self-start mt-0.5">
           <span
-            className={`inline-flex items-center justify-center font-bold text-xs px-2.5 py-0.5 rounded-full border ${getScoreBadge()}`}
+            className={`inline-flex items-center justify-center font-bold text-[14px] md:text-xs px-1 md:px-2.5 py-0.5 rounded-full md:border border-transparent bg-transparent ${getScoreBadge()}`}
           >
             {question.obtainedMarks}/{question.maxMarks}
           </span>
@@ -109,8 +105,8 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
           {/* AI Feedback Card */}
           <div className="rounded-xl bg-[#fafafa] border border-slate-200/80 p-3.5">
             <div className="flex items-center gap-1.5 mb-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-[#ff5722]" />
-              <span className="font-bold text-xs text-[#1e293b] uppercase tracking-wide">
+              <Sparkles className="hidden md:block w-3.5 h-3.5 text-[#ff5722]" />
+              <span className="font-bold text-[13px] md:text-xs text-[#1e293b] md:uppercase md:tracking-wide">
                 AI Feedback
               </span>
             </div>

@@ -36,11 +36,21 @@ export const Sidebar: React.FC<SidebarProps> = ({
   ];
 
   return (
-    <aside
-      className={`relative bg-white border-r border-[#e2e8f0] flex flex-col justify-between transition-all duration-300 ease-in-out shrink-0 select-none z-20 ${
-        isCollapsed ? "w-[74px] px-3 py-5" : "w-[240px] px-4 py-5"
-      }`}
-    >
+    <>
+      {/* Mobile Overlay */}
+      {!isCollapsed && (
+        <div 
+          className="fixed inset-0 bg-slate-900/20 z-40 md:hidden backdrop-blur-sm"
+          onClick={onToggleCollapse}
+        />
+      )}
+      <aside
+        className={`absolute md:relative bg-white border-r border-[#e2e8f0] flex flex-col justify-between transition-all duration-300 ease-in-out shrink-0 select-none z-50 h-full ${
+          isCollapsed 
+            ? "-translate-x-full md:translate-x-0 md:w-[74px] px-3 py-5" 
+            : "translate-x-0 w-[240px] px-4 py-5 shadow-2xl md:shadow-none"
+        }`}
+      >
       {/* Top section: Logo & Toolkit */}
       <div className="flex flex-col gap-5">
         {/* Brand Logo & Collapse Toggle */}
@@ -133,5 +143,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </button>
       </div>
     </aside>
+    </>
   );
 };

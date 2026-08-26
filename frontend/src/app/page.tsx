@@ -11,10 +11,14 @@ import { AssessmentData } from "@/lib/assessmentData";
 type FlowStep = "upload" | "extracting" | "mapping";
 
 export default function Home() {
-  // Wake up the backend on initial load
+  // Wake up the backend on initial load and handle mobile sidebar
   useEffect(() => {
     const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
     fetch(`${API_URL}/health`).catch(console.error);
+
+    if (window.innerWidth < 768) {
+      setIsSidebarCollapsed(true);
+    }
   }, []);
 
   const [currentStep, setCurrentStep] = useState<FlowStep>("upload");
@@ -61,7 +65,7 @@ export default function Home() {
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-[#eef0f3] p-2 md:p-3">
       {/* Outer Rounded Application Frame Container (Figma App Shell Aesthetic) */}
-      <div className="flex h-full w-full rounded-[24px] overflow-hidden bg-white shadow-2xl border border-slate-200/80">
+      <div className="flex h-full w-full rounded-[24px] overflow-hidden bg-white shadow-2xl border border-slate-200/80 relative">
         {/* Left Collapsible Sidebar */}
         <Sidebar
           isCollapsed={isSidebarCollapsed}
@@ -77,6 +81,7 @@ export default function Home() {
             currentStep={currentStep}
             showBack={currentStep !== "upload"}
             onBack={handleBackToUpload}
+            onToggleSidebar={() => setIsSidebarCollapsed((prev) => !prev)}
           />
 
           {/* Workflow Step Views */}

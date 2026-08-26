@@ -48,14 +48,14 @@ export const QuestionList: React.FC<QuestionListProps> = ({
       {/* Top Header */}
       <div className="p-4 border-b border-[#e2e8f0] bg-white flex items-center justify-between sticky top-0 z-10">
         <div>
-          <h2 className="font-bold text-[15px] text-[#0f172a] tracking-tight">
-            Extracted Questions <span className="text-slate-400 font-normal text-xs">(from question paper)</span>
+          <h2 className="font-bold text-[14px] text-slate-700 tracking-tight">
+            Extracted <span className="underline decoration-slate-400 underline-offset-4 decoration-2">Questions</span> <span className="font-normal">(from question paper)</span>
           </h2>
         </div>
 
         <button
           onClick={toggleAll}
-          className="text-xs font-semibold text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200/80 px-3 py-1.5 rounded-full transition-all border border-slate-200 shadow-xs"
+          className="hidden md:block text-xs font-semibold text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200/80 px-3 py-1.5 rounded-full transition-all border border-slate-200 shadow-xs"
         >
           {allExpanded ? "Collapse All" : "Expand All"}
         </button>

@@ -59,24 +59,24 @@ export const MappingScreen: React.FC<MappingScreenProps> = ({
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden bg-white">
       {/* Mobile Tab Segmented Switch (Visible on small screens) */}
-      <div className="md:hidden flex items-center justify-center p-2.5 bg-slate-100 border-b border-slate-200">
-        <div className="flex bg-slate-200/80 p-1 rounded-xl w-full max-w-sm">
+      <div className="md:hidden flex items-center justify-center p-3 bg-white border-b border-slate-200 shadow-sm relative z-10">
+        <div className="flex bg-slate-100/80 p-1.5 rounded-full w-[95%] max-w-sm">
           <button
             onClick={() => setMobileTab("questions")}
-            className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all ${
+            className={`flex-1 py-2.5 rounded-full text-sm font-semibold transition-all ${
               mobileTab === "questions"
-                ? "bg-white text-slate-900 shadow-xs"
-                : "text-slate-600 hover:text-slate-900"
+                ? "bg-[#2b2b2b] text-white shadow-md"
+                : "text-slate-500 hover:text-slate-800"
             }`}
           >
-            Questions ({questions.length})
+            Questions
           </button>
           <button
             onClick={() => setMobileTab("answersheet")}
-            className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all ${
+            className={`flex-1 py-2.5 rounded-full text-sm font-semibold transition-all ${
               mobileTab === "answersheet"
-                ? "bg-white text-slate-900 shadow-xs"
-                : "text-slate-600 hover:text-slate-900"
+                ? "bg-[#2b2b2b] text-white shadow-md"
+                : "text-slate-500 hover:text-slate-800"
             }`}
           >
             Answer Sheet
@@ -85,7 +85,7 @@ export const MappingScreen: React.FC<MappingScreenProps> = ({
       </div>
 
       {/* Main Split Layout */}
-      <div className="flex-1 flex flex-col md:flex-row h-[calc(100vh-4rem)] overflow-hidden">
+      <div className="flex-1 flex flex-col md:flex-row h-full overflow-hidden">
         {/* Left Column: Extracted Questions */}
         <div
           className={`w-full md:w-[48%] lg:w-[46%] h-full shrink-0 ${
