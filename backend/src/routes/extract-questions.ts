@@ -1,13 +1,15 @@
+import { Router, Request, Response } from 'express';
+const router = Router();
+
 /**
  * POST /api/extract-questions
  * Extract questions from question paper pages using Gemini AI
  */
 
-import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { getModel, callGeminiWithJSON } from '@/lib/client';
-import { EXTRACT_QUESTIONS_PROMPT } from '@/lib/prompts';
-import { Question, ExtractQuestionsRequest, ExtractQuestionsResponse } from '@/lib/types';
+import { getModel, callGeminiWithJSON } from '../lib/client';
+import { EXTRACT_QUESTIONS_PROMPT } from '../lib/prompts';
+import { Question, ExtractQuestionsRequest, ExtractQuestionsResponse } from '../lib/types';
 
 // Zod schema for request validation
 const PageImageSchema = z.object({
@@ -65,10 +67,10 @@ function generateQuestionId(
   return id;
 }
 
-export async function POST(request: NextRequest) {
+router.post('/', async (req: Request, res: Response) => {
   try {
     // Parse and validate request body
-    const body = await request.json();
+    const body = req.body;
     const validatedRequest = RequestSchema.parse(body) as ExtractQuestionsRequest;
 
     // Extract images from request
@@ -164,24 +166,20 @@ export async function POST(request: NextRequest) {
       warnings,
     };
 
-    return NextResponse.json(response, { status: 200 });
+    return res.status(200).json(response);
 
   } catch (error) {
     console.error('Error in /api/extract-questions:', error);
 
     if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: 'Validation error', details: error.issues },
-        { status: 400 }
-      );
+      return res.status(400).json({ error: 'Validation error', details: error.issues });
     }
 
-    return NextResponse.json(
-      { 
+    return res.status(500).json({ 
         error: 'Failed to extract questions',
         message: error instanceof Error ? error.message : 'Unknown error'
-      },
-      { status: 500 }
-    );
+      });
   }
-}
+});
+
+export default router;

@@ -1,14 +1,16 @@
+import { Router, Request, Response } from 'express';
+const router = Router();
+
 /**
  * POST /api/extract-answers
  * Extract answer blocks from student answer sheets using Gemini AI with Two-Stage Reasoning & Non-Blank Grounding Verification
  */
 
-import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { getModel, callGeminiWithJSON } from '@/lib/client';
-import { EXTRACT_ANSWERS_PROMPT } from '@/lib/prompts';
-import { Question, AnswerBlock, ExtractAnswersRequest, ExtractAnswersResponse, AnswerRegion } from '@/lib/types';
-import { isRegionLikelyBlank } from '@/lib/crop';
+import { getModel, callGeminiWithJSON } from '../lib/client';
+import { EXTRACT_ANSWERS_PROMPT } from '../lib/prompts';
+import { Question, AnswerBlock, ExtractAnswersRequest, ExtractAnswersResponse, AnswerRegion } from '../lib/types';
+import { isRegionLikelyBlank } from '../lib/crop';
 
 // Zod schema for request validation
 const PageImageSchema = z.object({
@@ -59,10 +61,10 @@ const AssignedAnswerItemSchema = z.object({
     .optional(),
 });
 
-export async function POST(request: NextRequest) {
+router.post('/', async (req: Request, res: Response) => {
   try {
     // Parse and validate request body
-    const body = await request.json();
+    const body = req.body;
     const validatedRequest = RequestSchema.parse(body) as ExtractAnswersRequest;
 
     const sortedPages = [...validatedRequest.pages].sort((a, b) => a.page - b.page);
@@ -284,23 +286,19 @@ export async function POST(request: NextRequest) {
       answerBlocks,
     };
 
-    return NextResponse.json(response, { status: 200 });
+    return res.status(200).json(response);
   } catch (error) {
     console.error('Error in /api/extract-answers:', error);
 
     if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: 'Validation error', details: error.issues },
-        { status: 400 }
-      );
+      return res.status(400).json({ error: 'Validation error', details: error.issues });
     }
 
-    return NextResponse.json(
-      {
+    return res.status(500).json({
         error: 'Failed to extract answers',
         message: error instanceof Error ? error.message : 'Unknown error',
-      },
-      { status: 500 }
-    );
+      });
   }
-}
+});
+
+export default router;

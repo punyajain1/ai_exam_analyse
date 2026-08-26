@@ -1,13 +1,15 @@
+import { Router, Request, Response } from 'express';
+const router = Router();
+
 /**
  * POST /api/reconcile
  * Reconcile questions with answer blocks using deterministic matching
  * This is a thin wrapper around the pure reconcile function
  */
 
-import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { reconcile } from '@/lib/reconcile';
-import { Question, AnswerBlock, ReconcileRequest, ReconcileResponse } from '@/lib/types';
+import { reconcile } from '../lib/reconcile';
+import { Question, AnswerBlock, ReconcileRequest, ReconcileResponse } from '../lib/types';
 
 // Zod schema for request validation
 const QuestionSchema = z.object({
@@ -40,10 +42,10 @@ const RequestSchema = z.object({
   answerBlocks: z.array(AnswerBlockSchema),
 });
 
-export async function POST(request: NextRequest) {
+router.post('/', async (req: Request, res: Response) => {
   try {
     // Parse and validate request body
-    const body = await request.json();
+    const body = req.body;
     const validatedRequest = RequestSchema.parse(body) as ReconcileRequest;
 
     // Call the pure reconcile function
@@ -54,24 +56,20 @@ export async function POST(request: NextRequest) {
 
     const response: ReconcileResponse = result;
 
-    return NextResponse.json(response, { status: 200 });
+    return res.status(200).json(response);
 
   } catch (error) {
     console.error('Error in /api/reconcile:', error);
 
     if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: 'Validation error', details: error.issues },
-        { status: 400 }
-      );
+      return res.status(400).json({ error: 'Validation error', details: error.issues });
     }
 
-    return NextResponse.json(
-      { 
+    return res.status(500).json({ 
         error: 'Failed to reconcile questions and answers',
         message: error instanceof Error ? error.message : 'Unknown error'
-      },
-      { status: 500 }
-    );
+      });
   }
-}
+});
+
+export default router;

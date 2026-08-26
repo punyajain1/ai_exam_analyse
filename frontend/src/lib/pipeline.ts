@@ -5,6 +5,8 @@
  */
 
 import { convertFileToPageImages, cropAnswerRegionClient, cropMultiRegionAnswerClient } from './pdfUtils';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 import {
   Question,
   Rubric,
@@ -63,7 +65,7 @@ export async function runAssessmentPipeline(
     totalSteps,
   });
 
-  const extractQpRes = await fetch('/api/extract-questions', {
+  const extractQpRes = await fetch(`${API_URL}/api/extract-questions`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ pages: qpPages }),
@@ -88,7 +90,7 @@ export async function runAssessmentPipeline(
     totalSteps,
   });
 
-  const rubricsRes = await fetch('/api/generate-rubrics', {
+  const rubricsRes = await fetch(`${API_URL}/api/generate-rubrics`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ questions }),
@@ -115,7 +117,7 @@ export async function runAssessmentPipeline(
     totalSteps,
   });
 
-  const extractAnsRes = await fetch('/api/extract-answers', {
+  const extractAnsRes = await fetch(`${API_URL}/api/extract-answers`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ pages: asPages, questions }),
@@ -137,7 +139,7 @@ export async function runAssessmentPipeline(
     totalSteps,
   });
 
-  const reconcileRes = await fetch('/api/reconcile', {
+  const reconcileRes = await fetch(`${API_URL}/api/reconcile`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ questions, answerBlocks: answerBlocks || [] }),
@@ -209,7 +211,7 @@ export async function runAssessmentPipeline(
     let success = false;
     for (let attempt = 0; attempt < 2 && !success; attempt++) {
       try {
-        const gradeRes = await fetch('/api/grade', {
+        const gradeRes = await fetch(`${API_URL}/api/grade`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

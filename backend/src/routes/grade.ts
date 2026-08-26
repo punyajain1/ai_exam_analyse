@@ -1,14 +1,16 @@
+import { Router, Request, Response } from 'express';
+const router = Router();
+
 /**
  * POST /api/grade
- * Grade matched answers against rubrics using Gemini AI with cropped answer images
+ * Grade matched answers against rubrics using Groq AI with cropped answer images
  */
 
-import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { getModel, callGeminiWithJSON } from '@/lib/client';
-import { callGroqWithJSON } from '@/lib/groqClient';
-import { GRADE_ANSWERS_PROMPT } from '@/lib/prompts';
-import { MatchedItem, Rubric, Grade, GradeRequest, GradeResponse } from '@/lib/types';
+
+import { callGroqWithJSON } from '../lib/groqClient';
+import { GRADE_ANSWERS_PROMPT } from '../lib/prompts';
+import { MatchedItem, Rubric, Grade, GradeRequest, GradeResponse } from '../lib/types';
 
 // Zod schema for request validation
 const QuestionSchema = z.object({
@@ -85,10 +87,10 @@ const GeminiResponseSchema = z.object({
   overallFeedback: z.string(),
 });
 
-export async function POST(request: NextRequest) {
+router.post('/', async (req: Request, res: Response) => {
   try {
     // Parse and validate request body
-    const body = await request.json();
+    const body = req.body;
     const validatedRequest = RequestSchema.parse(body) as GradeRequest;
 
     // Build lookup maps
@@ -141,10 +143,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (gradingItems.length === 0) {
-      return NextResponse.json(
-        { error: 'No gradable items found', warnings },
-        { status: 400 }
-      );
+      return res.status(400).json({ error: 'No gradable items found', warnings });
     }
 
     // Build the full prompt with all grading items
@@ -190,72 +189,18 @@ You MUST return a pure JSON object matching this schema:
 }
 `;
 
-    const fullPrompt = `${GRADE_ANSWERS_PROMPT}\n\n${jsonFormatInstructions}\n\nITEMS TO GRADE:\n${itemsText}`;
+    const fullPrompt = `${jsonFormatInstructions}\n\nITEMS TO GRADE:\n${itemsText}`;
 
     // Collect all images in order
     const images = gradingItems.map(item => item.imageBase64);
 
-    const evalProvider = (process.env.EVAL_PROVIDER || (process.env.GROQ_API_KEY && !process.env.GEMINI_API_KEY ? 'groq' : 'gemini')).toLowerCase();
-    let modelResponse: Record<string, unknown> | unknown[] | null = null;
-
-    if (evalProvider === 'groq') {
-      const groqModel = process.env.GROQ_GRADE_MODEL || 'openai/gpt-oss-120b';
-      console.log(`[Grading] Using Groq evaluation model: ${groqModel}`);
-      modelResponse = await callGroqWithJSON<Record<string, unknown> | unknown[]>(
-        fullPrompt,
-        images,
-        groqModel
-      );
-    } else {
-      // Default: Gemini AI (allows dedicated GEMINI_GRADE_MODEL override)
-      const geminiModel = process.env.GEMINI_GRADE_MODEL || process.env.GEMINI_MODEL || 'gemini-2.5-flash';
-      console.log(`[Grading] Using Gemini evaluation model: ${geminiModel}`);
-      const model = getModel(geminiModel);
-      
-      // Prepare JSON schema for Gemini
-      const responseSchema = {
-        type: 'object',
-        properties: {
-          grades: {
-            type: 'array',
-            items: {
-              type: 'object',
-              properties: {
-                questionId: { type: 'string' },
-                criteriaResults: {
-                  type: 'array',
-                  items: {
-                    type: 'object',
-                    properties: {
-                      point: { type: 'string' },
-                      met: { type: 'boolean' },
-                    },
-                    required: ['point', 'met'],
-                  },
-                },
-                score: { type: 'number' },
-                maxMarks: { type: 'number' },
-                verdict: { type: 'string', enum: ['correct', 'partial', 'incorrect'] },
-                feedback: { type: 'string' },
-              },
-              required: ['questionId', 'criteriaResults', 'score', 'maxMarks', 'verdict', 'feedback'],
-            },
-          },
-          overallFeedback: { type: 'string' },
-        },
-        required: ['grades', 'overallFeedback'],
-      };
-
-      modelResponse = await callGeminiWithJSON<Record<string, unknown> | unknown[]>(
-        model,
-        fullPrompt,
-        images,
-        responseSchema,
-        true // retry on invalid JSON
-      );
-    }
-
-    console.log('[Grading] Model Raw Output:', JSON.stringify(modelResponse, null, 2));
+    const groqModel = process.env.GROQ_GRADE_MODEL || 'openai/gpt-oss-120b';
+    const modelResponse = await callGroqWithJSON<Record<string, unknown> | unknown[]>(
+      fullPrompt,
+      images,
+      groqModel,
+      GRADE_ANSWERS_PROMPT // Pass as system prompt
+    );
 
     // Extract raw grades array from various model response shapes
     let rawGradesList: unknown[] = [];
@@ -288,8 +233,6 @@ You MUST return a pure JSON object matching this schema:
         }
       }
     }
-
-    console.log(`[Grading] Extracted ${rawGradesList.length} items for grading normalization`);
 
     // Helper to resolve questionId from model response (exact, fuzzy or index-based)
     const validQuestionIds = new Set(gradingItems.map(item => item.questionId));
@@ -434,27 +377,23 @@ You MUST return a pure JSON object matching this schema:
 
     // Include warnings if any
     if (warnings.length > 0) {
-      return NextResponse.json({ ...response, warnings }, { status: 200 });
+      return res.status(200).json({ ...response, warnings });
     }
 
-    return NextResponse.json(response, { status: 200 });
+    return res.status(200).json(response);
 
   } catch (error) {
     console.error('Error in /api/grade:', error);
 
     if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: 'Validation error', details: error.issues },
-        { status: 400 }
-      );
+      return res.status(400).json({ error: 'Validation error', details: error.issues });
     }
 
-    return NextResponse.json(
-      { 
+    return res.status(500).json({ 
         error: 'Failed to grade answers',
         message: error instanceof Error ? error.message : 'Unknown error'
-      },
-      { status: 500 }
-    );
+      });
   }
-}
+});
+
+export default router;
