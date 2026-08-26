@@ -11,6 +11,7 @@ import { getModel, callGeminiWithJSON } from '../lib/client';
 import { EXTRACT_ANSWERS_PROMPT } from '../lib/prompts';
 import { Question, AnswerBlock, ExtractAnswersRequest, ExtractAnswersResponse, AnswerRegion } from '../lib/types';
 import { isRegionLikelyBlank } from '../lib/crop';
+import { loadImage } from 'canvas';
 
 // Zod schema for request validation
 const PageImageSchema = z.object({
@@ -125,8 +126,8 @@ router.post('/', async (req: Request, res: Response) => {
       required: ['inventory', 'answers'],
     };
 
-    // Process each page individually in parallel to keep payload sizes small and prevent 502 Bad Gateway
-    const pagePromises = sortedPages.map(async (pageObj) => {
+    // Process pages in small batches to prevent OOM (Out Of Memory) and CPU blocking on Render
+    const processPage = async (pageObj: any) => {
       const pagePrompt = `${EXTRACT_ANSWERS_PROMPT}\n\nYou are examining Page ${pageObj.page + 1} of the answer sheet.\nQuestions from the question paper:\n${questionsContext}`;
 
       try {
@@ -169,6 +170,15 @@ router.post('/', async (req: Request, res: Response) => {
               `  - Block #${idx}: label="${inv.visibleLabel ?? 'unlabeled'}", text="${inv.rawText.substring(0, 50).replace(/\n/g, ' ')}", box=[${inv.box_2d?.join(', ')}]`
             );
           }
+        }
+
+        // Load image once per page for all blank checks to save CPU/Memory
+        let pageCanvasImage: any = pageObj.imageBase64;
+        try {
+          const pageBuffer = Buffer.from(pageObj.imageBase64.replace(/^data:image\/\w+;base64,/, ''), 'base64');
+          pageCanvasImage = await loadImage(pageBuffer);
+        } catch (e) {
+          console.warn('Failed to load page image for blank checking, falling back to base64', e);
         }
 
         // Process Stage B Answers with Non-Blank Grounding Verification
@@ -231,7 +241,7 @@ router.post('/', async (req: Request, res: Response) => {
           }
 
           // Deterministic Non-Blank Validation (Bug 2 fix)
-          const blankCheck = await isRegionLikelyBlank(pageObj.imageBase64, box_2d);
+          const blankCheck = await isRegionLikelyBlank(pageCanvasImage, box_2d);
           let finalConfidence = data.confidence;
           let isGroundingUncertain = false;
 
@@ -265,9 +275,15 @@ router.post('/', async (req: Request, res: Response) => {
         console.warn(`Error extracting answers from page ${pageObj.page + 1}:`, pageErr);
         return [];
       }
-    });
+    };
 
-    const pageResults = await Promise.all(pagePromises);
+    const pageResults: AnswerBlock[][] = [];
+    const BATCH_SIZE = 2; // Process 2 pages at a time to keep memory usage low
+    for (let i = 0; i < sortedPages.length; i += BATCH_SIZE) {
+      const batch = sortedPages.slice(i, i + BATCH_SIZE);
+      const batchResults = await Promise.all(batch.map(p => processPage(p)));
+      pageResults.push(...batchResults);
+    }
 
     // Flatten results and assign sequential block IDs
     const answerBlocks: AnswerBlock[] = [];
