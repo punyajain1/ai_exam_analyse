@@ -43,10 +43,10 @@ function getGenAI(): GoogleGenerativeAI {
 
 /**
  * Get a configured Gemini model instance
- * @param modelName - defaults to gemini-3.5-flash-lite per specification
+ * @param modelName - defaults to gemini-3.1-flash-lite per specification
  */
 export function getModel(
-  modelName: string = process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite',
+  modelName: string = process.env.GEMINI_MODEL || 'gemini-3.1-flash-lite',
   systemInstruction?: string
 ): GenerativeModel {
   const genAI = getGenAI();

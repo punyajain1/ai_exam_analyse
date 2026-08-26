@@ -158,7 +158,7 @@ export const ExtractionLoading: React.FC<ExtractionLoadingProps> = ({
             Extracting &amp; Mapping Assessment...
           </h2>
           <p className="text-slate-500 text-sm md:text-base font-normal mb-5">
-            Processing files with Gemini 2.5 Flash Vision
+            Processing files with Gemini 3.1 Flash Lite Vision
           </p>
 
           {/* Progress Bar */}
